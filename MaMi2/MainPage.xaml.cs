@@ -1,0 +1,149 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
+using uPLibrary.Networking.M2Mqtt;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Navigation;
+
+// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+
+namespace MaMi2
+{
+    /// <summary>
+    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// </summary>
+    public sealed partial class MainPage : Page
+    {
+        DispatcherTimer datetimeUpdateTimer;
+        DispatcherTimer dayUpdateTimer;
+
+        HttpClient httpClient = new HttpClient();
+
+        private MqttClient mqttClient;
+
+        public MainPage()
+        {
+            this.InitializeComponent();
+            UpdateTime();
+            UpdateTemp();
+            UpdateMovements();
+            datetimeUpdateTimer = new DispatcherTimer();
+            datetimeUpdateTimer.Tick += DatetimeUpdateTimer_Tick;
+            datetimeUpdateTimer.Interval = TimeSpan.FromMinutes(1);
+            datetimeUpdateTimer.Start();
+
+            dayUpdateTimer = new DispatcherTimer();
+            dayUpdateTimer.Tick += DayUpdateTimer_Tick;
+            dayUpdateTimer.Interval = TimeSpan.FromHours(1);
+            dayUpdateTimer.Start();
+
+            mqttClient = new MqttClient("10.10.10.1");
+            mqttClient.Connect("mami");
+            mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
+            //, "/smarthome/mirrormain"
+            mqttClient.Subscribe(new[] { "/smarthome/mirror" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            mqttClient.Subscribe(new[] { "/smarthome/mirrormain" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            UpdateSun();
+
+
+            GetFeed();
+           
+        }
+
+        private async void GetFeed() {
+            var client = new Windows.Web.Syndication.SyndicationClient();
+            var feed = await client.RetrieveFeedAsync(new Uri("http://www.aftonbladet.se/nyheter/rss.xml"));
+            var lastNews = feed.Items.Take(2);
+
+            tbLastNews.Text = lastNews.FirstOrDefault().Title.Text;
+            tbOldNews.Text = lastNews.LastOrDefault().Title.Text;
+        }
+
+        private async void UpdateMovements()
+        {
+            var bioState = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/IN_BIO/state");
+            var gfState = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/IN_GF/state");
+            var tfState = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/IN_TF/state");
+            tf.Fill.Opacity = tfState == "ON" ? 1 : 0.4;
+            gf.Fill.Opacity = gfState == "ON" ? 1 : 0.4;
+            bf.Fill.Opacity = bioState == "ON" ? 1 : 0.4;
+        }
+
+        private void DayUpdateTimer_Tick(object sender, object e)
+        {
+            UpdateSun();
+        }
+
+        private void MqttClient_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
+        {
+            var message = Encoding.UTF8.GetString(e.Message);
+            UpdateMessage(message, e.Topic);
+        }
+
+        private async void UpdateMessage(string message, string topic)
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
+            {
+                if (topic== "/smarthome/mirrormain")
+                    tbMainMessage.Text = message;
+                else
+                    tbSecMessage.Text = message;
+            });
+
+            //.Invoke((Action)(() => tbSecMessage.Text = message));
+
+        }
+
+        private void DatetimeUpdateTimer_Tick(object sender, object e)
+        {
+            UpdateTime();
+            UpdateTemp();
+            GetFeed();
+        }
+
+        public void UpdateTime()
+        {
+            var now = DateTime.Now;
+            tbTime.Text = now.ToString("HH:mm");
+            var dateString = now.ToString("D");
+            tbDate.Text = dateString.Substring(0, dateString.Length - 6);
+            rect2Storyboard.Begin();
+            UpdateMovements();
+        }
+
+
+        public async void UpdateSun()
+        {
+            var rise = DateTime.Parse(await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/Sunrise_Time/state"));
+            var set = DateTime.Parse(await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/Sunset_Time/state"));
+            tbSun.Text = rise.ToString("HH:mm") + " - " + set.ToString("HH:mm");
+        }
+
+        public async void UpdateTemp()
+        {
+
+            var stringData = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/TEMPOUT/state");
+
+
+            tbTemp.Text = stringData + "°";
+
+
+        }
+
+        private void StackPanel_Loaded(object sender, RoutedEventArgs e)
+        {
+            rect2Storyboard.Begin();
+        }
+    }
+}
