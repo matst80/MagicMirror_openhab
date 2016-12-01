@@ -95,7 +95,7 @@ namespace MaMi2
         private void MqttClient_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
         {
             var message = Encoding.UTF8.GetString(e.Message);
-            if (e.Topic == "/smarthome/news") { }
+            if (e.Topic == "/smarthome/news") 
             {
                 ShowNewsPage();
             }
