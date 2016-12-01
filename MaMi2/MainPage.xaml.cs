@@ -6,8 +6,13 @@ using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using uPLibrary.Networking.M2Mqtt;
+using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Media.SpeechRecognition;
+using Windows.Storage;
+using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -31,6 +36,7 @@ namespace MaMi2
         HttpClient httpClient = new HttpClient();
 
         private MqttClient mqttClient;
+        private SpeechRecognizer recognizer;
 
         public MainPage()
         {
@@ -58,7 +64,7 @@ namespace MaMi2
 
 
             GetFeed();
-           
+            initializeSpeechRecognizer();
         }
 
         private async void GetFeed() {
@@ -68,6 +74,7 @@ namespace MaMi2
 
             tbLastNews.Text = lastNews.FirstOrDefault().Title.Text;
             tbOldNews.Text = lastNews.LastOrDefault().Title.Text;
+           
         }
 
         private async void UpdateMovements()
@@ -88,7 +95,12 @@ namespace MaMi2
         private void MqttClient_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
         {
             var message = Encoding.UTF8.GetString(e.Message);
-            UpdateMessage(message, e.Topic);
+            if (e.Topic == "/smarthome/news") { }
+            {
+                ShowNewsPage();
+            }
+            else
+                UpdateMessage(message, e.Topic);
         }
 
         private async void UpdateMessage(string message, string topic)
@@ -141,9 +153,50 @@ namespace MaMi2
 
         }
 
+        private async void initializeSpeechRecognizer()
+        {
+            // Initialize recognizer
+            recognizer = new SpeechRecognizer();
+            recognizer.StateChanged += Recognizer_StateChanged; 
+            recognizer.ContinuousRecognitionSession.ResultGenerated += RecognizerResultGenerated;
+            var grammarContentFile = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(@"Assets\grammar.xml");
+
+            var grammarConstraint = new SpeechRecognitionGrammarFileConstraint(grammarContentFile);
+            recognizer.Constraints.Add(grammarConstraint);
+
+            var compilationResult = await recognizer.CompileConstraintsAsync();
+            if (compilationResult.Status == SpeechRecognitionResultStatus.Success)
+            {
+                //Debug.WriteLine("Result: " + compilationResult.ToString());
+
+                await recognizer.ContinuousRecognitionSession.StartAsync();
+            }
+        }
+
+        private void RecognizerResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
+        {
+            
+        }
+
+        private void Recognizer_StateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
+        {
+            
+        }
+
         private void StackPanel_Loaded(object sender, RoutedEventArgs e)
         {
             rect2Storyboard.Begin();
+        }
+
+        private async void tbMainMessage_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            ShowNewsPage();
+
+        }
+
+        private void ShowNewsPage()
+        {
+            this.Frame.Navigate(typeof(NewsViewPage));
         }
     }
 }
