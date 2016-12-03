@@ -53,12 +53,12 @@
                     <CompositeTransform3D RotationX="-60" RotationY="-10" TranslateZ="-75" CenterX="60" CenterY="40" />
                 </Rectangle.Transform3D>
             </Rectangle>
-            <Rectangle x:Name="bf" Margin="-120,40,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="80" Width="120" Fill="#993498db"  Stroke="#CC3498db" RadiusY="2" RadiusX="2" StrokeThickness="4">
+            <Rectangle x:Name="gf" Margin="-120,40,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="80" Width="120" Fill="#993498db"  Stroke="#CC3498db" RadiusY="2" RadiusX="2" StrokeThickness="4">
                 <Rectangle.Transform3D>
                     <CompositeTransform3D RotationX="-60" RotationY="-10" TranslateZ="-75" CenterX="60" CenterY="40" />
                 </Rectangle.Transform3D>
             </Rectangle>
-            <Rectangle x:Name="gf" Margin="-120,60,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="80" Width="120" Fill="#9927ae60" Stroke="#CC27ae60" RadiusY="2" RadiusX="2" StrokeThickness="4">
+            <Rectangle x:Name="bf" Margin="-120,60,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="80" Width="120" Fill="#9927ae60" Stroke="#CC27ae60" RadiusY="2" RadiusX="2" StrokeThickness="4">
                 <Rectangle.Transform3D>
                     <CompositeTransform3D RotationX="-60" RotationY="-10" TranslateZ="-75" CenterX="60" CenterY="40" />
                 </Rectangle.Transform3D>

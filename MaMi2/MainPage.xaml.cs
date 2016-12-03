@@ -206,18 +206,20 @@ namespace MaMi2
             var command = cmd.SemanticInterpretation.Properties["command"].FirstOrDefault();
             var what = cmd.SemanticInterpretation.Properties["direction"].FirstOrDefault();
             //Debug.WriteLine(command + " " + what);
-            
-            if (what == "NEWS")
+            if (cmd.Confidence > SpeechRecognitionConfidence.Low)
             {
-                ShowNewsPage();
-            }
-            else if (what == "SCHEDULE")
-            {
-                ShowSchedulePage();
-            }
-            else if (what == "HOME")
-            {
-                NavBack();
+                if (what == "NEWS")
+                {
+                    ShowNewsPage();
+                }
+                else if (what == "SCHEDULE")
+                {
+                    ShowSchedulePage();
+                }
+                else if (what == "HOME")
+                {
+                    NavBack();
+                }
             }
         }
 
