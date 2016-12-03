@@ -19,6 +19,6 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="794,-34,0,0" TextWrapping="Wrap" Text="Nyheter" VerticalAlignment="Top" Height="153" Width="476" Foreground="White" FontWeight="ExtraLight" FontSize="110" TextAlignment="Right"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Right" Margin="794,-34,0,0" TextWrapping="Wrap" Text="Nyheter" VerticalAlignment="Top" Height="153" Width="476" Foreground="White" FontWeight="ExtraLight" FontSize="110" TextAlignment="Right"/>
     </Grid>
 </Page>

@@ -60,6 +60,7 @@ namespace MaMi2
             //, "/smarthome/mirrormain"
             mqttClient.Subscribe(new[] { "/smarthome/mirror" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
             mqttClient.Subscribe(new[] { "/smarthome/mirrormain" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            mqttClient.Subscribe(new[] { "/smarthome/news" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
             UpdateSun();
 
 
@@ -67,14 +68,15 @@ namespace MaMi2
             initializeSpeechRecognizer();
         }
 
-        private async void GetFeed() {
+        private async void GetFeed()
+        {
             var client = new Windows.Web.Syndication.SyndicationClient();
             var feed = await client.RetrieveFeedAsync(new Uri("http://www.aftonbladet.se/nyheter/rss.xml"));
             var lastNews = feed.Items.Take(2);
 
             tbLastNews.Text = lastNews.FirstOrDefault().Title.Text;
             tbOldNews.Text = lastNews.LastOrDefault().Title.Text;
-           
+
         }
 
         private async void UpdateMovements()
@@ -95,9 +97,12 @@ namespace MaMi2
         private void MqttClient_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
         {
             var message = Encoding.UTF8.GetString(e.Message);
-            if (e.Topic == "/smarthome/news") 
+            if (e.Topic == "/smarthome/news")
             {
-                ShowNewsPage();
+                if (message == "off")
+                    NavBack();
+                else
+                    ShowNewsPage();
             }
             else
                 UpdateMessage(message, e.Topic);
@@ -107,14 +112,11 @@ namespace MaMi2
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
             {
-                if (topic== "/smarthome/mirrormain")
+                if (topic == "/smarthome/mirrormain")
                     tbMainMessage.Text = message;
                 else
                     tbSecMessage.Text = message;
             });
-
-            //.Invoke((Action)(() => tbSecMessage.Text = message));
-
         }
 
         private void DatetimeUpdateTimer_Tick(object sender, object e)
@@ -157,7 +159,7 @@ namespace MaMi2
         {
             // Initialize recognizer
             recognizer = new SpeechRecognizer();
-            recognizer.StateChanged += Recognizer_StateChanged; 
+            recognizer.StateChanged += Recognizer_StateChanged;
             recognizer.ContinuousRecognitionSession.ResultGenerated += RecognizerResultGenerated;
             var grammarContentFile = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(@"Assets\grammar.xml");
 
@@ -175,12 +177,12 @@ namespace MaMi2
 
         private void RecognizerResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
         {
-            
+
         }
 
         private void Recognizer_StateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
         {
-            
+
         }
 
         private void StackPanel_Loaded(object sender, RoutedEventArgs e)
@@ -190,13 +192,26 @@ namespace MaMi2
 
         private async void tbMainMessage_Tapped(object sender, TappedRoutedEventArgs e)
         {
+
             ShowNewsPage();
 
         }
 
-        private void ShowNewsPage()
+        private async void ShowNewsPage()
         {
-            this.Frame.Navigate(typeof(NewsViewPage));
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
+            {
+                this.Frame.Navigate(typeof(NewsViewPage));
+            });
+        }
+
+        private async void NavBack()
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
+            {
+                if (this.Frame.CanGoBack)
+                    this.Frame.GoBack();
+            });
         }
     }
 }
