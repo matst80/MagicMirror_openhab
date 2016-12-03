@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -75,7 +76,7 @@ namespace MaMi2
             var lastNews = feed.Items.Take(2);
 
             tbLastNews.Text = lastNews.FirstOrDefault().Title.Text;
-            tbOldNews.Text = lastNews.LastOrDefault().Title.Text;
+            //tbOldNews.Text = lastNews.LastOrDefault().Title.Text;
 
         }
 
@@ -103,6 +104,13 @@ namespace MaMi2
                     NavBack();
                 else
                     ShowNewsPage();
+            }
+            else if (e.Topic == "/smarthome/calendar")
+            {
+                if (message == "off")
+                    NavBack();
+                else
+                    ShowSchedulePage();
             }
             else
                 UpdateMessage(message, e.Topic);
@@ -161,6 +169,7 @@ namespace MaMi2
             recognizer = new SpeechRecognizer();
             recognizer.StateChanged += Recognizer_StateChanged;
             recognizer.ContinuousRecognitionSession.ResultGenerated += RecognizerResultGenerated;
+
             var grammarContentFile = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(@"Assets\grammar.xml");
 
             var grammarConstraint = new SpeechRecognitionGrammarFileConstraint(grammarContentFile);
@@ -173,16 +182,33 @@ namespace MaMi2
 
                 await recognizer.ContinuousRecognitionSession.StartAsync();
             }
+
+
         }
 
         private void RecognizerResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
         {
-
+            var cmd = args.Result;
+            var command = cmd.SemanticInterpretation.Properties["command"].FirstOrDefault();
+            var what = cmd.SemanticInterpretation.Properties["direction"].FirstOrDefault();
+            Debug.WriteLine(command + " " + what);
+            if (what == "NEWS")
+            {
+                ShowNewsPage();
+            }
+            else if (what == "SCHEDULE")
+            {
+                ShowSchedulePage();
+            }
+            else if (what == "HOME")
+            {
+                NavBack();
+            }
         }
 
         private void Recognizer_StateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
         {
-
+            Debug.WriteLine(args.State);
         }
 
         private void StackPanel_Loaded(object sender, RoutedEventArgs e)
@@ -204,6 +230,15 @@ namespace MaMi2
                 this.Frame.Navigate(typeof(NewsViewPage));
             });
         }
+
+        private async void ShowSchedulePage()
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
+            {
+                this.Frame.Navigate(typeof(CalendarViewPage));
+            });
+        }
+
 
         private async void NavBack()
         {

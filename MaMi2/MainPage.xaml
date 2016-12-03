@@ -64,7 +64,6 @@
                 </Rectangle.Transform3D>
             </Rectangle>
         </StackPanel>
-        <TextBlock x:Name="tbLastNews" HorizontalAlignment="Left" Margin="0,27,0,0" Text="Här kommer nyhet" VerticalAlignment="Top" Height="98" Width="885" Foreground="#FFB6B6B6" FontSize="36" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" />
-        <TextBlock x:Name="tbOldNews" HorizontalAlignment="Left" Margin="0,0,0,0" Text="Här kommer gammal nyhet" VerticalAlignment="Top" Height="67" Width="885" Foreground="#FF7C7C7C" FontSize="24" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" />
+        <TextBlock x:Name="tbLastNews" HorizontalAlignment="Left" Text="Här kommer nyhet" VerticalAlignment="Top" Height="98" Width="885" Foreground="#FFB6B6B6" FontSize="36" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" />
     </Grid>
 </Page>
