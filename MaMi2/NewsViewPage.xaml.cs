@@ -51,7 +51,8 @@ namespace MaMi2
         private void BackTimer_Tick(object sender, object e)
         {
             backTimer.Stop();
-            this.Frame.GoBack();
+            if (this.Frame.CanGoBack)
+                this.Frame.GoBack();
         }
 
         private async void GetFeed() {

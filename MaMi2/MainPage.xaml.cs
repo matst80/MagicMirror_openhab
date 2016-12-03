@@ -83,44 +83,7 @@ namespace MaMi2
 
         private async void GetCalendarFeed()
         {
-            var calUrl = "https://calendar.google.com/calendar/ical/hbbe92b9tvlr9rosslm092chn4%40group.calendar.google.com/public/basic.ics";
-            var calStream = await httpClient.GetStreamAsync(calUrl);
-            var ret = new List<CalendarEvent>();
-            var currentEvent = new CalendarEvent();
-            CultureInfo us = new CultureInfo("en-US");
-            var hasStarted = false;
-            using (var sr = new StreamReader(calStream))
-            {
-                while (sr.Peek() >= 0)
-                {
-                    var line = sr.ReadLine();
-                    if (line == "BEGIN:VEVENT")
-                        hasStarted = true;
-                    var parts = line.Split(':');
-                    var key = parts[0];
-                    var value = parts[1];
-                    if (hasStarted)
-                    {
-                        if (key == "DTSTART")
-                        {
-                            currentEvent.StartDate = DateTime.ParseExact(value, "yyyyMMddTHHmmssZ", us);
-                        }
-                        else if (key == "DTEND")
-                        {
-                            currentEvent.EndDate = DateTime.ParseExact(value, "yyyyMMddTHHmmssZ", us);
-                        }
-                        else if (key == "SUMMARY")
-                        {
-                            currentEvent.Title = value;
-                        }
-                        else if (line == "END:VEVENT")
-                        {
-                            ret.Add(currentEvent);
-                            currentEvent = new CalendarEvent();
-                        }
-                    }
-                }
-            }
+            var ret = await ICalParser.GetCalenderEvents("https://calendar.google.com/calendar/ical/hbbe92b9tvlr9rosslm092chn4%40group.calendar.google.com/public/basic.ics");
             var first = ret.FirstOrDefault(d => d.StartDate>=DateTime.Now && d.StartDate.Date == DateTime.Today);
             if (first != null) {
                 tbSecMessage.Text = first.StartDateText;
@@ -231,7 +194,9 @@ namespace MaMi2
 
                 await recognizer.ContinuousRecognitionSession.StartAsync();
             }
-
+            else {
+                //tbMainMessage.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 0, 0));
+            }
 
         }
 
@@ -240,7 +205,8 @@ namespace MaMi2
             var cmd = args.Result;
             var command = cmd.SemanticInterpretation.Properties["command"].FirstOrDefault();
             var what = cmd.SemanticInterpretation.Properties["direction"].FirstOrDefault();
-            Debug.WriteLine(command + " " + what);
+            //Debug.WriteLine(command + " " + what);
+            
             if (what == "NEWS")
             {
                 ShowNewsPage();
