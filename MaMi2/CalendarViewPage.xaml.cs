@@ -44,7 +44,7 @@ namespace MaMi2
         {
             get
             {
-                return StartDate.ToString("HH:mm");
+                return EndDate.ToString("HH:mm");
             }
         }
     }
@@ -82,34 +82,40 @@ namespace MaMi2
             var ret = new List<CalendarEvent>();
             var currentEvent = new CalendarEvent();
             CultureInfo us = new CultureInfo("en-US");
+            var hasStarted = false;
             using (var sr = new StreamReader(calStream))
             {
                 while (sr.Peek() >= 0)
                 {
                     var line = sr.ReadLine();
+                    if (line == "BEGIN:VEVENT")
+                        hasStarted = true;
                     var parts = line.Split(':');
                     var key = parts[0];
                     var value = parts[1];
-                    if (key == "DTSTART")
+                    if (hasStarted)
                     {
-                        currentEvent.StartDate = DateTime.ParseExact(value, "yyyyMMddTHHmmssZ", us);
-                    }
-                    else if (key == "DTEND")
-                    {
-                        currentEvent.EndDate = DateTime.ParseExact(value, "yyyyMMddTHHmmssZ", us);
-                    }
-                    else if (key == "SUMMARY")
-                    {
-                        currentEvent.Title = value;
-                    }
-                    else if (line == "END:VEVENT")
-                    {
-                        ret.Add(currentEvent);
-                        currentEvent = new CalendarEvent();
+                        if (key == "DTSTART")
+                        {
+                            currentEvent.StartDate = DateTime.ParseExact(value, "yyyyMMddTHHmmssZ", us);
+                        }
+                        else if (key == "DTEND")
+                        {
+                            currentEvent.EndDate = DateTime.ParseExact(value, "yyyyMMddTHHmmssZ", us);
+                        }
+                        else if (key == "SUMMARY")
+                        {
+                            currentEvent.Title = value;
+                        }
+                        else if (line == "END:VEVENT")
+                        {
+                            ret.Add(currentEvent);
+                            currentEvent = new CalendarEvent();
+                        }
                     }
                 }
             }
-            listView.ItemsSource = ret.Where(d => d.EndDate > DateTime.Now);
+            listView.ItemsSource = ret.Where(d => d.EndDate >= DateTime.Now).OrderBy(d=>d.StartDate).Take(4);
 
         }
 
