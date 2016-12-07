@@ -60,9 +60,13 @@ namespace MaMi2
             mqttClient.Connect("mami");
             mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
             //, "/smarthome/mirrormain"
-            mqttClient.Subscribe(new[] { "/smarthome/mirror" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            mqttClient.Subscribe(new[] { "/smarthome/mirrormain" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            mqttClient.Subscribe(new[] { "/smarthome/news" }, new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+
+            var bs = new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
+
+
+            mqttClient.Subscribe(new[] { "/smarthome/mirror" }, bs);
+            mqttClient.Subscribe(new[] { "/smarthome/mirrormain" }, bs);
+            mqttClient.Subscribe(new[] { "/smarthome/news" }, bs);
             UpdateSun();
 
 
@@ -206,7 +210,7 @@ namespace MaMi2
             var command = cmd.SemanticInterpretation.Properties["command"].FirstOrDefault();
             var what = cmd.SemanticInterpretation.Properties["direction"].FirstOrDefault();
             //Debug.WriteLine(command + " " + what);
-            if (cmd.Confidence > SpeechRecognitionConfidence.Low)
+            //if (cmd.Confidence > SpeechRecognitionConfidence.Low)
             {
                 if (what == "NEWS")
                 {
@@ -225,7 +229,7 @@ namespace MaMi2
 
         private void Recognizer_StateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
         {
-            Debug.WriteLine(args.State);
+            //Debug.WriteLine(args.State);
         }
 
         private void StackPanel_Loaded(object sender, RoutedEventArgs e)
