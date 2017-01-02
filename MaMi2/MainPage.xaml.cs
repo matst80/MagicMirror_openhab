@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -9,9 +10,11 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using uPLibrary.Networking.M2Mqtt;
 using Windows.ApplicationModel.Core;
+using Windows.ApplicationModel.Resources.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Media.SpeechRecognition;
+using Windows.Media.SpeechSynthesis;
 using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
@@ -34,6 +37,10 @@ namespace MaMi2
     {
         DispatcherTimer datetimeUpdateTimer;
         DispatcherTimer dayUpdateTimer;
+
+        private SpeechSynthesizer synthesizer;
+        private ResourceContext speechContext;
+        private ResourceMap speechResourceMap;
 
         HttpClient httpClient = new HttpClient();
 
@@ -61,17 +68,24 @@ namespace MaMi2
             mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
             //, "/smarthome/mirrormain"
 
-            var bs = new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
+            var bs = new byte[] { uPLibrary.Networking.M2Mqtt.Messages.MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
 
 
             mqttClient.Subscribe(new[] { "/smarthome/mirror" }, bs);
             mqttClient.Subscribe(new[] { "/smarthome/mirrormain" }, bs);
             mqttClient.Subscribe(new[] { "/smarthome/news" }, bs);
             UpdateSun();
-
+            //tbIcon.FontFamily = new FontFamily("");
 
             GetFeed();
             initializeSpeechRecognizer();
+
+            synthesizer = new SpeechSynthesizer();
+
+            speechContext = ResourceContext.GetForCurrentView();
+            speechContext.Languages = new string[] { SpeechSynthesizer.DefaultVoice.Language };
+
+            speechResourceMap = ResourceManager.Current.MainResourceMap.GetSubtree("LocalizationTTSResources");
         }
 
         private async void GetFeed()
@@ -88,8 +102,9 @@ namespace MaMi2
         private async void GetCalendarFeed()
         {
             var ret = await ICalParser.GetCalenderEvents("https://calendar.google.com/calendar/ical/hbbe92b9tvlr9rosslm092chn4%40group.calendar.google.com/public/basic.ics");
-            var first = ret.FirstOrDefault(d => d.StartDate>=DateTime.Now && d.StartDate.Date == DateTime.Today);
-            if (first != null) {
+            var first = ret.FirstOrDefault(d => d.StartDate >= DateTime.Now && d.StartDate.Date == DateTime.Today);
+            if (first != null)
+            {
                 tbSecMessage.Text = first.StartDateText;
                 tbMainMessage.Text = first.Title;
             }
@@ -141,6 +156,14 @@ namespace MaMi2
                 else
                     tbSecMessage.Text = message;
             });
+
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, async () =>
+            {
+                var synthesisStream = await synthesizer.SynthesizeTextToStreamAsync(message);
+                media.AutoPlay = true;
+                media.SetSource(synthesisStream, synthesisStream.ContentType);
+                media.Play();
+            });
         }
 
         private void DatetimeUpdateTimer_Tick(object sender, object e)
@@ -173,6 +196,33 @@ namespace MaMi2
 
             var stringData = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/TEMPOUT/state");
 
+            var forecastData = await httpClient.GetStringAsync("http://api.openweathermap.org/data/2.5/weather?id=2715459&appid=dda831346e7ec2b4cefce10a15486032");
+
+            var weather = JsonConvert.DeserializeObject<WeatherForecast>(forecastData);
+            var wi = weather.weather.FirstOrDefault();
+            
+
+            var dict = new Dictionary<string, char>() {
+                { "01d",'\uf00d' },
+                { "02d",'\uf002' },
+                { "03d",'\uf013'},
+                { "04d",'\uf013'},
+                { "09d",'\uf01a'},
+                { "10d",'\uf019'},
+                { "11d",'\uf01e'},
+                { "13d",'\uf01b'},
+                { "50d",'\uf014'},
+                { "01n",'\uf02e'},
+                { "02n",'\uf031'},
+                { "03n",'\uf031'},
+                { "04n",'\uf031'},
+                { "09n",'\uf037'},
+                { "10n",'\uf036'},
+                { "11n",'\uf03b'},
+                { "13n",'\uf038'},
+                { "50n",'\uf023'} };
+
+            tbIcon.Text = dict[wi.icon].ToString();
 
             tbTemp.Text = stringData + "°";
 
@@ -198,7 +248,8 @@ namespace MaMi2
 
                 await recognizer.ContinuousRecognitionSession.StartAsync();
             }
-            else {
+            else
+            {
                 //tbMainMessage.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 0, 0));
             }
 
@@ -211,20 +262,35 @@ namespace MaMi2
             var what = cmd.SemanticInterpretation.Properties["direction"].FirstOrDefault();
             //Debug.WriteLine(command + " " + what);
             //if (cmd.Confidence > SpeechRecognitionConfidence.Low)
+            if (command == "SHOW")
             {
                 if (what == "NEWS")
                 {
-                    ShowNewsPage();
+                    //if (cmd.Confidence>=SpeechRecognitionConfidence.Medium)
+                    //ShowNewsPage();
                 }
                 else if (what == "SCHEDULE")
                 {
-                    ShowSchedulePage();
+                    //ShowSchedulePage();
+                }
+                else if (what == "RADIO")
+                {
+                    PlayRadio();
                 }
                 else if (what == "HOME")
                 {
                     NavBack();
                 }
             }
+        }
+
+        private async void PlayRadio()
+        {
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
+            {
+                media.Source = new Uri(@"http://http-live.sr.se/p3-mp3-192");
+                media.Play();
+            });
         }
 
         private void Recognizer_StateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
@@ -240,7 +306,7 @@ namespace MaMi2
         private async void tbMainMessage_Tapped(object sender, TappedRoutedEventArgs e)
         {
 
-            ShowNewsPage();
+            //ShowNewsPage();
 
         }
 
@@ -248,7 +314,8 @@ namespace MaMi2
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
             {
-                this.Frame.Navigate(typeof(NewsViewPage));
+                if (!this.Frame.CanGoBack)
+                    this.Frame.Navigate(typeof(NewsViewPage));
             });
         }
 
@@ -256,7 +323,8 @@ namespace MaMi2
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
             {
-                this.Frame.Navigate(typeof(CalendarViewPage));
+                if (!this.Frame.CanGoBack)
+                    this.Frame.Navigate(typeof(CalendarViewPage));
             });
         }
 
@@ -265,6 +333,7 @@ namespace MaMi2
         {
             await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
             {
+                media.Stop();
                 if (this.Frame.CanGoBack)
                     this.Frame.GoBack();
             });

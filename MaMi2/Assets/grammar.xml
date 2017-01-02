@@ -28,6 +28,7 @@
           <item>view</item>
           <item>go</item>
           <item>open</item>
+          <item>play</item>
         </one-of>
       </item>
     </one-of>
@@ -40,7 +41,6 @@
           <tag> out="NEWS"; </tag>
           <one-of>
             <item>news</item>
-            <item>crap</item>
           </one-of>
         </item>
         <item>
@@ -59,9 +59,14 @@
             <item>start</item>
           </one-of>
         </item>
+        <item>
+          <tag> out="RADIO"; </tag>
+          <one-of>
+            <item>radio</item>
+            <item>music</item>
+          </one-of>
+        </item>
       </one-of>
     </item>
   </rule>
-
- 
 </grammar>
