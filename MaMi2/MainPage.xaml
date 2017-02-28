@@ -8,12 +8,12 @@
     mc:Ignorable="d">
 
     <Grid Background="Black">
-        <TextBlock x:Name="tbTime" HorizontalAlignment="Right" Margin="0,15,0,0" Text="10:33" VerticalAlignment="Top" Height="149" Width="357" Foreground="White" FontSize="120" FontWeight="Light" TextAlignment="Right"/>
-        <TextBlock x:Name="tbDate" HorizontalAlignment="Right" Margin="0" Text="Fredag 10 December" VerticalAlignment="Top" Height="64" Width="694" Foreground="#FFB9B9B9" FontSize="40" FontWeight="Light" TextAlignment="Right" />
+        <TextBlock x:Name="tbTime" HorizontalAlignment="Right" Margin="0,15,8,0" Text="10:33" VerticalAlignment="Top" Height="149" Width="357" Foreground="White" FontSize="120" FontWeight="Light" TextAlignment="Right"/>
+        <TextBlock x:Name="tbDate" HorizontalAlignment="Right" Margin="0,0,8,0" Text="Fredag 10 December" VerticalAlignment="Top" Height="64" Width="694" Foreground="#FFB9B9B9" FontSize="40" FontWeight="Light" TextAlignment="Right" />
         <TextBlock x:Name="tbTemp" HorizontalAlignment="Right" Margin="0,137,10,0" Text="3°" VerticalAlignment="Top" Height="149" Width="357" Foreground="White" FontSize="80" FontWeight="Light" TextAlignment="Right"/>
-        <TextBlock x:Name="tbMainMessage" Tapped="tbMainMessage_Tapped" HorizontalAlignment="Left" Margin="0" Text="Idag blir en bra dag" VerticalAlignment="Bottom" Height="156" Width="885" Foreground="White" FontSize="110" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" LineStackingStrategy="BaselineToBaseline" CharacterSpacing="-30" />
-        <TextBlock x:Name="tbSecMessage" HorizontalAlignment="Left" Margin="0,0,0,122" Text="God morgon" VerticalAlignment="Bottom" Height="92" Width="885" Foreground="#FFC5C5C5" FontSize="48" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" />
-        <TextBlock x:Name="tbSun" HorizontalAlignment="Right" Margin="0,409,4,0" Text="10:10 - 22:22" VerticalAlignment="Top" Height="64" Width="760" Foreground="#FFEDF0CF" FontSize="40" FontWeight="Light" TextAlignment="Right" />
+        <TextBlock x:Name="tbMainMessage" HorizontalAlignment="Center" Margin="0" Text="" VerticalAlignment="Bottom" Height="156" Width="885" Foreground="White" FontSize="110" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" LineStackingStrategy="BaselineToBaseline" CharacterSpacing="-30" />
+        <TextBlock x:Name="tbSecMessage" HorizontalAlignment="Center" Margin="0,0,0,122" Text="" VerticalAlignment="Bottom" Height="92" Width="885" Foreground="#FFC5C5C5" FontSize="48" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" />
+        <TextBlock x:Name="tbSun" HorizontalAlignment="Right" Margin="0,397,30,0" Text="10:10 - 22:22" VerticalAlignment="Top" Height="64" Width="760" Foreground="#FFEDF0CF" FontSize="40" FontWeight="Light" TextAlignment="Right" />
         <StackPanel Orientation="Horizontal" Loaded="StackPanel_Loaded" Margin="0,525,30,7" HorizontalAlignment="Right">
             <StackPanel.Resources>
                 <Storyboard x:Name="rect2Storyboard">
@@ -64,8 +64,8 @@
                 </Rectangle.Transform3D>
             </Rectangle>
         </StackPanel>
-        <TextBlock x:Name="tbLastNews" HorizontalAlignment="Left" Text="Här kommer nyhet" VerticalAlignment="Top" Height="98" Width="885" Foreground="#FFB6B6B6" FontSize="36" FontWeight="ExtraLight" TextAlignment="Center" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" />
+        <TextBlock x:Name="tbLastNews" HorizontalAlignment="Left" Text="Här kommer nyhet" VerticalAlignment="Top" Height="122" Width="798" Foreground="#FFB6B6B6" FontSize="36" FontWeight="ExtraLight" TextAlignment="Left" FontStretch="Condensed" CharacterSpacing="-30" TextWrapping="WrapWholeWords" MaxLines="5" Margin="16,4,466,0" />
         <MediaElement x:Name="media" HorizontalAlignment="Left" Height="100" Margin="1178,660,0,-40" VerticalAlignment="Top" Width="100"/>
-        <TextBlock x:Name="tbIcon" HorizontalAlignment="Right" Margin="0,303,52,0" FontFamily="Assets/weathericons-regular-webfont.ttf#Weather Icons" Text="" VerticalAlignment="Top" Height="149" Width="357" Foreground="White" FontSize="80" FontWeight="Medium" TextAlignment="Right"/>
+        <TextBlock x:Name="tbIcon" HorizontalAlignment="Right" Margin="0,291,10,0" FontFamily="Assets/weathericons-regular-webfont.ttf#Weather Icons" Text="" VerticalAlignment="Top" Height="149" Width="215" Foreground="White" FontSize="80" FontWeight="Medium" TextAlignment="Center"/>
     </Grid>
 </Page>

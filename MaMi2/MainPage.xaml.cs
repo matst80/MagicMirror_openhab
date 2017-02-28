@@ -78,6 +78,9 @@ namespace MaMi2
             //tbIcon.FontFamily = new FontFamily("");
 
             GetFeed();
+            UpdateForecast();
+            UpdateMessage();
+
             initializeSpeechRecognizer();
 
             synthesizer = new SpeechSynthesizer();
@@ -123,7 +126,39 @@ namespace MaMi2
 
         private void DayUpdateTimer_Tick(object sender, object e)
         {
+
             UpdateSun();
+            UpdateForecast();
+            UpdateMessage();
+        }
+
+        private void UpdateMessage()
+        {
+            var h = DateTime.Now.Hour;
+            if (h == 6)
+            {
+                tbMainMessage.Text = "Godmorgon!";
+                var r = new Random();
+                tbSecMessage.Text = (r.Next() > 0.5f) ? "Idag blir en bra dag" : "Idag är du snygg!";
+            }
+            if (h == 16)
+            {
+                tbMainMessage.Text = "Välkommen hem!";
+                if (DateTime.Now.DayOfWeek >= DayOfWeek.Monday && DateTime.Now.DayOfWeek < DayOfWeek.Friday)
+                    tbSecMessage.Text = "Bara " + (5 - (int)DateTime.Now.DayOfWeek) + " kvar till helg!";
+                else if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+                    tbSecMessage.Text = "It is friday, woohoo!";
+            }
+            if (h == 18)
+            {
+                tbMainMessage.Text = "Godkväll!";
+                tbSecMessage.Text = "Bygg något skoj?!";
+            }
+            if (h == 23)
+            {
+                tbMainMessage.Text = "Sovdags";
+                tbSecMessage.Text = "Sov så gott";
+            }
         }
 
         private void MqttClient_MqttMsgPublishReceived(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
@@ -191,18 +226,7 @@ namespace MaMi2
             tbSun.Text = rise.ToString("HH:mm") + " - " + set.ToString("HH:mm");
         }
 
-        public async void UpdateTemp()
-        {
-
-            var stringData = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/TEMPOUT/state");
-
-            var forecastData = await httpClient.GetStringAsync("http://api.openweathermap.org/data/2.5/weather?id=2715459&appid=dda831346e7ec2b4cefce10a15486032");
-
-            var weather = JsonConvert.DeserializeObject<WeatherForecast>(forecastData);
-            var wi = weather.weather.FirstOrDefault();
-            
-
-            var dict = new Dictionary<string, char>() {
+        private static Dictionary<string, char> dict = new Dictionary<string, char>() {
                 { "01d",'\uf00d' },
                 { "02d",'\uf002' },
                 { "03d",'\uf013'},
@@ -222,9 +246,42 @@ namespace MaMi2
                 { "13n",'\uf038'},
                 { "50n",'\uf023'} };
 
+        public async void UpdateTemp()
+        {
+
+            var stringData = await httpClient.GetStringAsync("http://10.10.10.1:8080/rest/items/TEMPOUT/state");
+
+            var forecastData = await httpClient.GetStringAsync("http://api.openweathermap.org/data/2.5/weather?id=2715459&appid=dda831346e7ec2b4cefce10a15486032");
+
+            var weather = JsonConvert.DeserializeObject<WeatherForecast>(forecastData);
+            var wi = weather.weather.FirstOrDefault();
+
+
+            //var 
+
             tbIcon.Text = dict[wi.icon].ToString();
 
             tbTemp.Text = stringData + "°";
+
+
+        }
+
+        public async void UpdateForecast()
+        {
+
+
+
+            var forecastData = await httpClient.GetStringAsync("http://api.openweathermap.org/data/2.5/weather?id=2715459&appid=dda831346e7ec2b4cefce10a15486032");
+
+            var weather = JsonConvert.DeserializeObject<WeatherForecast>(forecastData);
+            var wi = weather.weather.FirstOrDefault();
+
+
+
+
+            tbIcon.Text = dict[wi.icon].ToString();
+
+
 
 
         }
@@ -262,24 +319,27 @@ namespace MaMi2
             var what = cmd.SemanticInterpretation.Properties["direction"].FirstOrDefault();
             //Debug.WriteLine(command + " " + what);
             //if (cmd.Confidence > SpeechRecognitionConfidence.Low)
-            if (command == "SHOW")
+            if (cmd.Confidence >= SpeechRecognitionConfidence.Medium)
             {
-                if (what == "NEWS")
+                if (command == "SHOW")
                 {
-                    //if (cmd.Confidence>=SpeechRecognitionConfidence.Medium)
-                    //ShowNewsPage();
-                }
-                else if (what == "SCHEDULE")
-                {
-                    //ShowSchedulePage();
-                }
-                else if (what == "RADIO")
-                {
-                    PlayRadio();
-                }
-                else if (what == "HOME")
-                {
-                    NavBack();
+                    if (what == "NEWS")
+                    {
+                        if (cmd.Confidence >= SpeechRecognitionConfidence.High)
+                            ShowNewsPage();
+                    }
+                    else if (what == "SCHEDULE")
+                    {
+                        ShowSchedulePage();
+                    }
+                    else if (what == "RADIO")
+                    {
+                        PlayRadio();
+                    }
+                    else if (what == "HOME")
+                    {
+                        NavBack();
+                    }
                 }
             }
         }
@@ -303,12 +363,12 @@ namespace MaMi2
             rect2Storyboard.Begin();
         }
 
-        private async void tbMainMessage_Tapped(object sender, TappedRoutedEventArgs e)
-        {
+        //private async void tbMainMessage_Tapped(object sender, TappedRoutedEventArgs e)
+        //{
 
-            //ShowNewsPage();
+        //    //ShowNewsPage();
 
-        }
+        //}
 
         private async void ShowNewsPage()
         {
